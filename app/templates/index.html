@@ -27,30 +27,18 @@
       <input type=submit value=Upload id="submit-btn">
     </form>
     <div id="message" style="display:none"></div>
+
+    <form id="query">
+      <p>What are you looking for?</p>
+      <input type=text name=object_type placeholder="object type">
+      <input type=number name=object_id placeholder="object ID">
+      <input type=number name=timestamp placeholder="timestamp">
+      <input type=submit value=Query id="query-submit"></form>
+    </form>
+    <div id="query-result" style="display:none"></div>
   </div>
+
 </body>
-<script>
-  $(function() {
-    $('#submit-btn').on('click', function(){
-       var fd = new FormData(document.querySelector("form"));
-       $.ajax({
-          url: "/upload_file",
-          type: "POST",
-          data: fd,
-          processData: false,  // tell jQuery not to process the data
-          contentType: false,  // tell jQuery not to set contentType
-          success: function() {
-            $("#message").text("File uploaded successfully!");
-            $("#message").show();
-          },
-          error: function() {
-            $("#message").text("Sorry, there was an error. Please check you have uploaded a file that exists and try again.");
-            $("#message").show();
-          },
-        });
-       return false;
-      });
- });
-</script>
+<script src="/static/script.js"></script>
 
 </html>

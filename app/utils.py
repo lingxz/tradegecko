@@ -16,6 +16,7 @@ def remap_keys(mapping):
 
 
 def process_csv(infile="uploads/data.csv"):
+    Log.drop_collection()  # overwrite data
     current_states = {}
     with open(infile) as f:
         next(f)  # skip the headers
@@ -23,6 +24,7 @@ def process_csv(infile="uploads/data.csv"):
             items = line.split(',')
             object_id, object_type, timestamp = items[:3]
             object_id = int(object_id)
+            object_type = object_type.lower()
             timestamp = int(timestamp)
             ch = ','.join(items[3:])
             object_changes = ast.literal_eval(json.loads(ch))
@@ -42,3 +44,6 @@ def get_past_state(object_type, object_id, timestamp):
     obj = Log.objects(object_type=object_type, object_id=object_id,
                       timestamp__lte=timestamp).order_by('-timestamp').limit(1).as_pymongo()[0]
     return obj['object_state']
+
+def check_data_exists():
+    return Log.objects.count() > 0
