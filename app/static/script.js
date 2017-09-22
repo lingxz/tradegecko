@@ -1,6 +1,8 @@
 $(function() {
   $('#submit-btn').on('click', function(){
    const fd = new FormData(document.querySelector("form"));
+   $("#message").text("Uploading and processing file...");
+   $("#message").show();
    $.ajax({
       url: "/upload_file",
       type: "POST",
