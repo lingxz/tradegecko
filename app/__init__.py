@@ -91,4 +91,4 @@ def register_blueprints(app):
 
 def run():
     """Runs the app."""
-    app.run(host=app.config.get('HOST'), port=app.config.get('PORT'))
+    app.run(host=app.config.get('HOST'), port=app.config.get('PORT'), debug=True)

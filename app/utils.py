@@ -1,18 +1,22 @@
 import csv
 import json
 import ast
-from collections import defaultdict
+from app import db
+from app.model import Log
+
 
 def apply_changes(original, change):
     for key in change:
         original[key] = change[key]
     return original
 
-def remap_keys(mapping):
-    return [{'object_id':k[0], 'object_type': k[1],'history': v} for k, v in mapping.items()]
 
-def process_csv(infile="uploads/data.csv", outfile="out.json"):
-    data = defaultdict(list)
+def remap_keys(mapping):
+    return [{'object_id': k[0], 'object_type': k[1], 'history': v} for k, v in mapping.items()]
+
+
+def process_csv(infile="uploads/data.csv"):
+    current_states = {}
     with open(infile) as f:
         next(f)  # skip the headers
         for line in f:
@@ -22,18 +26,19 @@ def process_csv(infile="uploads/data.csv", outfile="out.json"):
             timestamp = int(timestamp)
             ch = ','.join(items[3:])
             object_changes = ast.literal_eval(json.loads(ch))
-            data[(object_id, object_type)].append((timestamp, object_changes))
-
-    state_dict = defaultdict(list)  # variable storing the state of object at each timestamp
-    for key in data:
-        sorted_changes = sorted(data[key], key=lambda x:x[0])  # sort changes by timestamp
-        current_state = None
-        for c in sorted_changes:
-            timestamp, change = c
-            if not current_state:
-                current_state = change
+            key = (object_id, object_type)
+            if key in current_states:
+                prev_state = current_states[key]
+                current_state = apply_changes(prev_state, object_changes)
             else:
-                current_state = apply_changes(current_state, change)
-            state_dict[key].append((timestamp, current_state))
-    with open(outfile, 'w') as f:
-        json.dump(remap_keys(state_dict), f, indent=2)
+                current_state = object_changes
+            current_states[key] = current_state
+            log = Log(object_id=object_id, object_type=object_type, timestamp=timestamp, 
+                      object_changes=object_changes, object_state=current_state)
+            log.save()
+
+
+def get_past_state(object_type, object_id, timestamp):
+    obj = Log.objects(object_type=object_type, object_id=object_id,
+                      timestamp__lte=timestamp).order_by('-timestamp').limit(1).as_pymongo()[0]
+    return obj['object_state']
