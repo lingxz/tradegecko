@@ -15,6 +15,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
   <![endif]-->
   <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet">
+  <style>
+    html {
+      font-family: Lora, serif;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: Lora, serif;
+    }
+    .warning {
+      background-color: #f44336;
+      padding: 0.5em;
+      color: white;
+      margin-bottom: 15px;
+    }
+  </style>
 </head>
 
 <body>
@@ -22,6 +37,11 @@
   
   <div id="main">
     <h1>Upload new file</h1>
+    {% if data_loaded %}
+      <div class="warning" id="upload-warning">There is already data loaded. If you upload a new file, it will override the previous one.</div>
+    {% else %}
+      <div class="info" id="upload-info">There is no data loaded currently. </div>
+    {% endif %}
     <form enctype=multipart/form-data>
       <input type=file name=file>
       <input type=submit value=Upload id="submit-btn">
