@@ -1,21 +1,21 @@
 import os
-from flask import Flask, flash, request, redirect, url_for, render_template, abort
 import json
-import utils
-import constants
+from app import utils
+from flask import Blueprint, render_template
+from app import constants
 
-app = Flask(__name__)
+inventory = Blueprint('inventory', __name__)
 
 
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in constants.ALLOWED_EXTENSIONS
 
-@app.route('/')
+@inventory.route('/')
 def home():
     return render_template('index.html')
 
-@app.route('/upload_file', methods=["POST"])
+@inventory.route('/upload_file', methods=["POST"])
 def upload_file():
     if 'file' not in request.files:
         message = 'No file part'
@@ -28,8 +28,3 @@ def upload_file():
         file.save(constants.DATA_FILE)
     utils.process_csv(infile=constants.DATA_FILE, outfile=constants.OUTPUT_FILE)
     return json.dumps({'success': True}), 200, {'ContentType':'application/json'}
-
-
-# run development server locally, uses uswgi on deployment
-if __name__ == '__main__':
-    app.run(debug=True)
