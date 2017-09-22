@@ -1,8 +1,8 @@
 import csv
 import json
 import ast
-from app import db
-from app.model import Log
+from app import mongo
+import flask_pymongo
 
 
 def apply_changes(original, change):
@@ -16,7 +16,9 @@ def remap_keys(mapping):
 
 
 def process_csv(infile="uploads/data.csv"):
-    Log.drop_collection()  # overwrite data
+    db = mongo.db
+    db.logs.drop()  # overwrite data
+    logs = db.logs
     current_states = {}
     with open(infile) as f:
         next(f)  # skip the headers
@@ -35,15 +37,25 @@ def process_csv(infile="uploads/data.csv"):
             else:
                 current_state = object_changes
             current_states[key] = current_state
-            log = Log(object_id=object_id, object_type=object_type, timestamp=timestamp, 
-                      object_changes=object_changes, object_state=current_state)
-            log.save()
+            log = {
+                'object_id': object_id,
+                'object_type': object_type,
+                'timestamp': timestamp,
+                'object_changes': object_changes,
+                'object_state': current_state,
+            }
+            logs.insert_one(log)
+    logs.create_index([("object_id", flask_pymongo.ASCENDING),
+                        ("object_type", flask_pymongo.ASCENDING)])
 
 
 def get_past_state(object_type, object_id, timestamp):
-    obj = Log.objects(object_type=object_type, object_id=object_id,
-                      timestamp__lte=timestamp).order_by('-timestamp').limit(1).as_pymongo()[0]
+    obj = mongo.db.logs.find_one({
+        "object_type": object_type, 
+        "object_id": object_id, 
+        "timestamp": {'$lte': timestamp},
+    }, sort=[("timestamp", flask_pymongo.DESCENDING)])
     return obj['object_state']
 
 def check_data_exists():
-    return Log.objects.count() > 0
+    return mongo.db.logs.count() > 0

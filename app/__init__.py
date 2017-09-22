@@ -12,16 +12,14 @@ import json
 import logging
 import logging.handlers
 
-from flask import Flask
-from flask_mongoengine import MongoEngine
+from flask import Flask, current_app
+from flask_pymongo import PyMongo
 
-
-db = MongoEngine()
 app = None
 adi = dict()
 assets = None
 gcal_client = None
-
+mongo = PyMongo()
 
 def create_app(**config_overrides):
     """This is normal setup code for a Flask app, but we give the option
@@ -35,6 +33,7 @@ def create_app(**config_overrides):
     global adi
     global assets
     global gcal_client
+    global mongo
     app = Flask(__name__)
 
     # Load config then apply overrides
@@ -42,7 +41,7 @@ def create_app(**config_overrides):
     app.config.update(config_overrides)
 
     # Setup the database.
-    db.init_app(app)
+    mongo.init_app(app)
 
     # Attach Blueprints (routing) to the app
     register_blueprints(app)
