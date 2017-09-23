@@ -5,6 +5,7 @@ from app import mongo
 from pymongo import MongoClient
 import flask_pymongo
 import multiprocessing
+from app import constants
 
 
 def apply_changes(original, change):
@@ -68,12 +69,13 @@ def process_csv(infile="uploads/data.csv"):
     if buffer_logs:
         q.put(buffer_logs)
     q.put('DONE')
+    watcher.get()
     pool.close()
     pool.join()
 
 
 def queue_reader(q, db_name):
-    mongo = MongoClient()
+    mongo = MongoClient(constants.MONGO_HOST, constants.MONGO_PORT)
     logs = mongo[db_name].logs
     while True:
         chunk = q.get()
