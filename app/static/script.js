@@ -32,14 +32,18 @@ $(function() {
       url: "/item?" + query,
       type: "GET",
       success: function(res) {
-        console.log(res)
-        let result_text = "<h5>Query result</h5>"
-        for (let key in res) {
-          let value = res[key];
-          result_text += `<b>${key}</b>: ${value}<br/>`
+        if ($.isEmptyObject(res)){
+          $("#query-result").text("Object did not exist at that time.");
+          $("#query-result").show();
+        } else {
+          let result_text = "<h5>Query result</h5>"
+          for (let key in res) {
+            let value = res[key];
+            result_text += `<b>${key}</b>: ${value}<br/>`
+          }
+          $("#query-result").html(result_text);
+          $("#query-result").show();
         }
-        $("#query-result").html(result_text);
-        $("#query-result").show();
       },
     })
   })

@@ -26,7 +26,6 @@ def create_app(**config_overrides):
     to provide override configurations so that in testing, a different
     database can be used.
     """
-    from app.routes.base import register_error_handlers
 
     # we want to modify the global app, not a local copy
     global app
@@ -45,9 +44,6 @@ def create_app(**config_overrides):
 
     # Attach Blueprints (routing) to the app
     register_blueprints(app)
-
-    # Attache error handling functions to the app
-    register_error_handlers(app)
 
     # Register the logger.
     register_logger(app)

@@ -1,7 +1,7 @@
 import os
 import json
 from app import utils
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, current_app, abort
 from app import constants
 
 inventory = Blueprint('inventory', __name__)
@@ -38,5 +38,7 @@ def get_prev_state():
     object_type = request.args.get('object_type', type=str).lower()
     object_id = request.args.get('object_id', type=int)
     timestamp = request.args.get('timestamp', type=int)
-    current_state = utils.get_past_state(object_type, object_id, timestamp)
-    return jsonify(current_state)
+    current_obj = utils.get_past_state(object_type, object_id, timestamp)
+    if current_obj is None:
+        return jsonify({})
+    return jsonify(current_obj["object_state"])

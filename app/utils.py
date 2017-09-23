@@ -90,7 +90,7 @@ def get_past_state(object_type, object_id, timestamp):
         "object_id": object_id, 
         "timestamp": {'$lte': timestamp},
     }, sort=[("timestamp", flask_pymongo.DESCENDING)])
-    return obj['object_state']
+    return obj
 
 def check_data_exists():
     return mongo.db.logs.count() > 0
