@@ -22,14 +22,12 @@ def process_csv(infile="uploads/data.csv"):
     db.logs.drop()  # overwrite data
     logs = db.logs
     current_states = {}
-    from datetime import datetime
-    start = datetime.now()
 
     pool = multiprocessing.Pool()
     manager = multiprocessing.Manager()
     q = manager.Queue()
 
-    watcher = pool.apply_async(queue_reader, (q,))
+    watcher = pool.apply_async(queue_reader, (q, db.name))
     db.logs.create_index([("object_id", flask_pymongo.ASCENDING),
                             ("object_type", flask_pymongo.ASCENDING),
                             ("timestamp", flask_pymongo.DESCENDING)], background=True)
@@ -74,9 +72,9 @@ def process_csv(infile="uploads/data.csv"):
     pool.join()
 
 
-def queue_reader(q):
+def queue_reader(q, db_name):
     mongo = MongoClient()
-    logs = mongo.tradegecko.logs
+    logs = mongo[db_name].logs
     while True:
         chunk = q.get()
         if chunk == 'DONE':
