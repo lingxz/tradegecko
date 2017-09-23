@@ -36,7 +36,7 @@ def create_app(**config_overrides):
     app = Flask(__name__)
 
     # Load config then apply overrides
-    app.config.from_pyfile('../config/default.cfg')
+    app.config.from_pyfile('../config/default.py')
     app.config.update(config_overrides)
 
     # Setup the database.
