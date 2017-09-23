@@ -2,7 +2,9 @@ import csv
 import json
 import ast
 from app import mongo
+from pymongo import MongoClient
 import flask_pymongo
+import multiprocessing
 
 
 def apply_changes(original, change):
@@ -20,8 +22,22 @@ def process_csv(infile="uploads/data.csv"):
     db.logs.drop()  # overwrite data
     logs = db.logs
     current_states = {}
+    from datetime import datetime
+    start = datetime.now()
+
+    pool = multiprocessing.Pool()
+    manager = multiprocessing.Manager()
+    q = manager.Queue()
+
+    watcher = pool.apply_async(queue_reader, (q,))
+    db.logs.create_index([("object_id", flask_pymongo.ASCENDING),
+                            ("object_type", flask_pymongo.ASCENDING),
+                            ("timestamp", flask_pymongo.DESCENDING)], background=True)
+
     with open(infile) as f:
         next(f)  # skip the headers
+        buffer_logs = []
+        count = 0
         for line in f:
             items = line.split(',')
             object_id, object_type, timestamp = items[:3]
@@ -44,9 +60,28 @@ def process_csv(infile="uploads/data.csv"):
                 'object_changes': object_changes,
                 'object_state': current_state,
             }
-            logs.insert_one(log)
-    logs.create_index([("object_id", flask_pymongo.ASCENDING),
-                        ("object_type", flask_pymongo.ASCENDING)])
+            buffer_logs.append(log)  # bulk insert to speed up db calls
+            count += 1
+            if count == 2500:
+                q.put(buffer_logs)
+                buffer_logs = []
+                count = 0
+
+    if buffer_logs:
+        q.put(buffer_logs)
+    q.put('DONE')
+    pool.close()
+    pool.join()
+
+
+def queue_reader(q):
+    mongo = MongoClient()
+    logs = mongo.tradegecko.logs
+    while True:
+        chunk = q.get()
+        if chunk == 'DONE':
+            break
+        logs.insert_many(chunk, ordered=False)
 
 
 def get_past_state(object_type, object_id, timestamp):
