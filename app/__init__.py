@@ -11,6 +11,7 @@
 import json
 import logging
 import logging.handlers
+import multiprocessing
 
 from flask import Flask, current_app
 from flask_pymongo import PyMongo
@@ -20,6 +21,25 @@ adi = dict()
 assets = None
 gcal_client = None
 mongo = PyMongo()
+
+
+class Singleton(object):
+    def __new__(cls, *args, **kwds):
+        it = cls.__dict__.get("__it__")
+        if it is not None:
+            return it
+        cls.__it__ = it = object.__new__(cls)
+        it.init(*args, **kwds)
+        return it
+    def init(self, *args, **kwds):
+        pass
+
+class PoolHandler(Singleton):
+    def init(self, label=None, *args, **kwds):
+        self.pool = multiprocessing.Pool()
+        self.manager = multiprocessing.Manager()
+        self.q = self.manager.Queue()
+
 
 def create_app(**config_overrides):
     """This is normal setup code for a Flask app, but we give the option
@@ -47,6 +67,10 @@ def create_app(**config_overrides):
 
     # Register the logger.
     register_logger(app)
+
+    # initialize singleton pool handler, if using windows, comment this out.
+    # multiprocessing works poorly on windows because windows sucks
+    PoolHandler()
 
     return app
 

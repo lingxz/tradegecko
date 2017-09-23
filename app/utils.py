@@ -1,11 +1,9 @@
 import csv
 import json
 import ast
-from app import mongo
+from app import mongo, constants, PoolHandler
 from pymongo import MongoClient
 import flask_pymongo
-import multiprocessing
-from app import constants
 
 
 def apply_changes(original, change):
@@ -24,14 +22,14 @@ def process_csv(infile="uploads/data.csv"):
     logs = db.logs
     current_states = {}
 
-    pool = multiprocessing.Pool()
-    manager = multiprocessing.Manager()
-    q = manager.Queue()
-
+    pool_handler = PoolHandler()
+    q = pool_handler.q
+    pool = pool_handler.pool
     watcher = pool.apply_async(queue_reader, (q, db.name))
-    db.logs.create_index([("object_id", flask_pymongo.ASCENDING),
-                            ("object_type", flask_pymongo.ASCENDING),
-                            ("timestamp", flask_pymongo.DESCENDING)], background=True)
+
+    logs.create_index([("object_id", flask_pymongo.ASCENDING),
+                    ("object_type", flask_pymongo.ASCENDING),
+                    ("timestamp", flask_pymongo.DESCENDING)], background=True)
 
     with open(infile) as f:
         next(f)  # skip the headers
@@ -70,8 +68,6 @@ def process_csv(infile="uploads/data.csv"):
         q.put(buffer_logs)
     q.put('DONE')
     watcher.get()
-    pool.close()
-    pool.join()
 
 
 def queue_reader(q, db_name):
