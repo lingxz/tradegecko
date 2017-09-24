@@ -1,6 +1,7 @@
 import csv
 import json
 import ast
+import os
 from app import mongo, constants, PoolHandler
 from pymongo import MongoClient
 import flask_pymongo
@@ -31,12 +32,19 @@ def process_csv(infile="uploads/data.csv"):
                     ("object_type", flask_pymongo.ASCENDING),
                     ("timestamp", flask_pymongo.DESCENDING)], background=True)
 
+    if os.stat(infile).st_size == 0:
+        raise IOError("File is empty")
     with open(infile) as f:
-        next(f)  # skip the headers
+        try:
+            next(f)  # skip the headers
+        except StopIteration:
+            raise ValueError("File is only one line wrong")
         buffer_logs = []
         count = 0
         for line in f:
             items = line.split(',')
+            if len(items) < 4:
+                raise IOError("Data is malformed, number of fields is less than 3")
             object_id, object_type, timestamp = items[:3]
             object_id = int(object_id)
             object_type = object_type.lower()
