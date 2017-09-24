@@ -2,15 +2,17 @@ import csv
 import json
 import ast
 import os
+import copy
 from app import mongo, constants, PoolHandler
 from pymongo import MongoClient
 import flask_pymongo
 
 
 def apply_changes(original, change):
+    prev = copy.deepcopy(original)
     for key in change:
-        original[key] = change[key]
-    return original
+        prev[key] = change[key]
+    return prev
 
 
 def remap_keys(mapping):
@@ -74,6 +76,7 @@ def process_csv(infile="uploads/data.csv"):
 
     if buffer_logs:
         q.put(buffer_logs)
+        buffer_logs = []
     q.put('DONE')
     watcher.get()
 
@@ -94,6 +97,7 @@ def get_past_state(object_type, object_id, timestamp):
         "object_id": object_id, 
         "timestamp": {'$lte': timestamp},
     }, sort=[("timestamp", flask_pymongo.DESCENDING)])
+    print(obj)
     return obj
 
 def check_data_exists():
