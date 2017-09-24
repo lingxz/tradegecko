@@ -51,6 +51,7 @@ $(function() {
         $("#message").text("File uploaded successfully!");
         $("#message").show();
         $('#main').spin(false);
+        $("#upload-info").hide();
       },
       error: function() {
         $("#message").text("Sorry, there was an error. Please check you have uploaded a file that exists and try again.");
