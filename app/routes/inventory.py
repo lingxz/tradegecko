@@ -30,8 +30,11 @@ def upload_file():
         abort(400)
     if file and allowed_file(file.filename):
         file.save(constants.DATA_FILE)
-    utils.process_csv(infile=constants.DATA_FILE)
-    return json.dumps({'success': True}), 200, {'ContentType':'application/json'}
+    try:
+        utils.CSVProcessor(infile=constants.DATA_FILE)
+        return json.dumps({'success': True}), 200, {'ContentType':'application/json'}
+    except Exception as e:
+        return json.dumps({'success': False, 'error': str(e)}), 400, {'ContentType': 'application/json'}
 
 @inventory.route('/item')
 def get_prev_state():
