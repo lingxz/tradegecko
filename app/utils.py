@@ -59,10 +59,15 @@ class CSVProcessor:
         self.buffer_logs = []
         self.process_csv()
 
+    def _stop(self):
+        self.q.put('DONE')
+        self.watcher.get()
+
     def process_csv(self):
         with open(self.infile) as f:
             headers = f.readline().strip('\n').split(',')
             if headers != constants.HEADERS:
+                self._stop()
                 raise ValueError('Headers are invalid.')
             count = 0
             for line in f:
@@ -76,12 +81,12 @@ class CSVProcessor:
             if self.buffer_logs:
                 self.q.put(self.buffer_logs)
                 self.buffer_logs = []
-            self.q.put('DONE')
-            self.watcher.get()
+            self._stop()
 
     def process_line(self, line):
         items = line.split(',')
         if len(items) < 4:
+            self._stop()
             raise IOError("Data is malformed, number of fields is less than 3")
         object_id, object_type, timestamp = items[:3]
         object_id = int(object_id)
