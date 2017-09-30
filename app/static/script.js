@@ -55,8 +55,12 @@ $(function() {
         $('#main').spin(false);
         $("#upload-info").hide();
       },
-      error: function() {
-        $("#message").text("Sorry, there was an error. Please check you have uploaded a file that exists and try again.");
+      error: function(res) {
+        let messageText = "Sorry, there was an error. Please check you have uploaded a file that exists and try again."
+        if (res.status === 400) {
+          messageText = "Sorry, there was an error. Please check you have uploaded a file with valid data and try again."
+        }
+        $("#message").text(messageText);
         $("#message").show();
         $('#main').spin(false);
       },
