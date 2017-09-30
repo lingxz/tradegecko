@@ -86,7 +86,7 @@ class CSVProcessor:
                 self.q.put(self.buffer_logs)
                 self.buffer_logs = []
 
-    def process_line(self, line):
+    def convert_json(self, line):
         items = line.split(',')
         if len(items) < 4:
             raise IOError("Data is malformed, number of fields is less than 3")
@@ -96,6 +96,10 @@ class CSVProcessor:
         timestamp = int(timestamp)
         ch = ','.join(items[3:])
         object_changes = json.loads(json.loads(ch))
+        return object_id, object_type, timestamp, object_changes
+
+    def process_line(self, line):
+        object_id, object_type, timestamp, object_changes = self.convert_json(line)
         key = (object_id, object_type)
         if key in self.current_states:
             prev_state = self.current_states[key]
