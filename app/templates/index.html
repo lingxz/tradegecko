@@ -53,13 +53,18 @@
       <p>What are you looking for?</p>
       <input type=text name=object_type placeholder="object type" required>
       <input type=number name=object_id placeholder="object ID" required>
-      <input type=number name=timestamp placeholder="timestamp" required>
+      <!-- <input type=number name=timestamp placeholder="timestamp" required> -->
+      <input id="datetimepicker" name=timestamp placeohlder="Pick a datetime" type="text" required>
       <input type=submit value=Query id="query-submit"></form>
     </form>
     <div id="query-result" style="display:none"></div>
   </div>
 
 </body>
+<!-- datetime picker -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.4/build/jquery.datetimepicker.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.4/build/jquery.datetimepicker.full.min.js"></script>
+
 <script src="/static/script.js"></script>
 
 </html>

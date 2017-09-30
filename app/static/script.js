@@ -34,6 +34,8 @@ $(function() {
 
   /* spinner end */
 
+  $('#datetimepicker').datetimepicker();
+
   $('#submit-btn').on('click', function(){
     $('#main').spin();
     const fd = new FormData(document.querySelector("form"));
@@ -65,9 +67,15 @@ $(function() {
   $('#query').submit(function(event) {
     $('#main').spin();
     event.preventDefault();
-    const query = $(this).serialize();
+    const query = {};
+    $(this).serializeArray().map(function(x){ query[x.name] = x.value; }); 
+    // const query = $(this).serializeArray();
+    const datestr = query.timestamp;
+    const timestamp = Date.parse(datestr) / 1000;
+    query.timestamp = timestamp;
+    const query_str = $.param(query);
     $.ajax({
-      url: "/item?" + query,
+      url: "/item?" + query_str,
       type: "GET",
       success: function(res) {
         if ($.isEmptyObject(res)){
