@@ -27,9 +27,10 @@ def upload_file():
     if file.filename == '':
         message = 'No selected file'
         abort(400)
-    if file and allowed_file(file.filename):
-        file.save(constants.DATA_FILE)
+    if not (file and allowed_file(file.filename)):
+        return json.dumps({'success': False, 'error': 'Not a csv'}), 400, {'ContentType': 'application/json'}
     try:
+        file.save(constants.DATA_FILE)
         utils.CSVProcessor(infile=constants.DATA_FILE)
         return json.dumps({'success': True}), 200, {'ContentType':'application/json'}
     except Exception as e:
