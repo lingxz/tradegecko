@@ -1,8 +1,7 @@
 import os
 import json
-from app import utils
+from app import utils, constants
 from flask import Blueprint, render_template, request, jsonify, current_app, abort
-from app import constants
 
 inventory = Blueprint('inventory', __name__)
 

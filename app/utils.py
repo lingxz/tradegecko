@@ -61,10 +61,9 @@ class CSVProcessor:
 
     def process_csv(self):
         with open(self.infile) as f:
-            try:
-                next(f)  # skip the headers
-            except StopIteration:
-                raise ValueError("File is only one line long")
+            headers = f.readline().strip('\n').split(',')
+            if headers != constants.HEADERS:
+                raise ValueError('Headers are invalid.')
             count = 0
             for line in f:
                 log = self.process_line(line)
